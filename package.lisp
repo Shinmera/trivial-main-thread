@@ -9,8 +9,12 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
   (:nicknames #:org.shirakumo.trivial-main-thread #:tmt)
   (:use #:cl)
   (:export
+   #:*runner*
    #:*main-thread*
    #:find-main-thread
-   #:eval-in-main-thread
-   #:do-in-main-thread
-   #:swap-main-thread))
+   #:swap-main-thread
+   #:start-main-runner
+   #:ensure-main-runner
+   #:schedule-task
+   #:call-in-main-thread
+   #:with-body-in-main-thread))

@@ -17,4 +17,5 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
   :components ((:file "package")
                (:file "main-thread"))
   :depends-on (:trivial-features
-               :bordeaux-threads))
+               :bordeaux-threads
+               :simple-tasks))
