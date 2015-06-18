@@ -17,18 +17,26 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
           (car (last (bt:all-threads))))))
 
 (defvar *main-thread* (find-main-thread))
+#+ccl (defvar *housekeeping* NIL)
+
+#+ccl (defun ensure-housekeeping ()
+        (or *housekeeping*
+            (setf *housekeeping*
+                  (bt:make-thread #'ccl::housekeeping-loop :name "housekeeping"))))
 
 (defun swap-main-thread (new-function &optional (main-thread *main-thread*))
-  (let ((new-main #+ccl (bt:make-thread #'ccl::housekeeping-loop :name "housekeeping")
-                  #-(or ccl) NIL))
+  (let ((new-main (or #+ccl (ensure-housekeeping)
+                      NIL)))
     (bt:interrupt-thread
      main-thread
-     #+ccl (lambda ()
-             (ccl:%set-toplevel
-              (lambda ()
-                (ccl:%set-toplevel NIL)
-                (funcall new-function))))
-     #-(or ccl) new-function)
+     (or
+      #+ccl (lambda ()
+              (ccl:%set-toplevel
+               (lambda ()
+                 (ccl:%set-toplevel NIL)
+                 (funcall new-function)))
+              (ccl:toplevel))
+      new-function))
     new-main))
 
 (defun runner-starter (runner)
@@ -43,20 +51,31 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
   (swap-main-thread (runner-starter runner) main-thread)
   *runner*)
 
-(defun ensure-main-runner ()
-  (unless (eql (simple-tasks:status *runner*) :running)
+(defun stop-main-runner (&key (main-thread *main-thread*) (runner *runner*))
+  (unless (eql (simple-tasks:status runner) :running)
+    (error "Main runner ~a already stopped!" runner))
+  (bt:interrupt-thread main-thread (lambda () (invoke-restart 'simple-tasks:abort))))
+
+(defun ensure-main-runner (&key (runner *runner*))
+  (unless (eql (simple-tasks:status runner) :running)
     (start-main-runner)))
 
-(defun schedule-task (task)
-  (ensure-main-runner)
-  (simple-tasks:schedule-task task *runner*))
+(defun ensure-main-runner-started (&key (runner *runner*))
+  (ensure-main-runner :runner runner)
+  (loop until (eql (simple-tasks:status runner) :running)
+        do (sleep 0.01)))
 
-(defun call-in-main-thread (function &key blocking)
+(defun schedule-task (task &optional (runner *runner*))
+  (ensure-main-runner-started :runner runner)
+  (simple-tasks:schedule-task task runner))
+
+(defun call-in-main-thread (function &key blocking (runner *runner*))
+  (ensure-main-runner-started :runner runner)
   (simple-tasks:call-as-task
-   function *runner*
+   function runner
    (if blocking
        'simple-tasks:blocking-call-task
        'simple-tasks:call-task)))
 
-(defmacro with-body-in-main-thread ((&key blocking) &body body)
-  `(call-in-main-thread (lambda () ,@body) :blocking ,blocking))
+(defmacro with-body-in-main-thread ((&key blocking (runner '*runner*)) &body body)
+  `(call-in-main-thread (lambda () ,@body) :blocking ,blocking :runner ,runner))
