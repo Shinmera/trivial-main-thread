@@ -57,7 +57,8 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
   (unless (eql (simple-tasks:status runner) :running)
     (error "Main runner ~a already stopped!" runner))
   (bt:interrupt-thread main-thread (lambda () (invoke-restart 'simple-tasks:abort)))
-  #+ccl (bt:destroy-thread *housekeeping*)
+  #+ccl (when (and *housekeeping* (bt:thread-alive-p *housekeeping*))
+          (bt:destroy-thread *housekeeping*))
   runner)
 
 (defun ensure-main-runner (&key (runner *runner*))
