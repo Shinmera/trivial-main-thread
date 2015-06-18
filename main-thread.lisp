@@ -20,7 +20,8 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
 #+ccl (defvar *housekeeping* NIL)
 
 #+ccl (defun ensure-housekeeping ()
-        (or *housekeeping*
+        (or (when (and *housekeeping* (bt:thread-alive-p *housekeeping*))
+              *housekeeping*)
             (setf *housekeeping*
                   (bt:make-thread #'ccl::housekeeping-loop :name "housekeeping"))))
 
@@ -48,13 +49,16 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
 
 (defun start-main-runner (&key (main-thread *main-thread*) (runner *runner*))
   (setf *runner* runner)
+  (setf *main-thread* main-thread)
   (swap-main-thread (runner-starter runner) main-thread)
-  *runner*)
+  runner)
 
 (defun stop-main-runner (&key (main-thread *main-thread*) (runner *runner*))
   (unless (eql (simple-tasks:status runner) :running)
     (error "Main runner ~a already stopped!" runner))
-  (bt:interrupt-thread main-thread (lambda () (invoke-restart 'simple-tasks:abort))))
+  (bt:interrupt-thread main-thread (lambda () (invoke-restart 'simple-tasks:abort)))
+  #+ccl (bt:destroy-thread *housekeeping*)
+  runner)
 
 (defun ensure-main-runner (&key (runner *runner*))
   (unless (eql (simple-tasks:status runner) :running)
