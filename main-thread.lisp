@@ -31,9 +31,16 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
      #-(or ccl) new-function)
     new-main))
 
+(defun runner-starter (runner)
+  (lambda ()
+    (handler-bind ((error (lambda (err)
+                            (declare (ignore err))
+                            (invoke-restart 'simple-tasks:skip))))
+      (simple-tasks:start-runner runner))))
+
 (defun start-main-runner (&key (main-thread *main-thread*) (runner *runner*))
   (setf *runner* runner)
-  (swap-main-thread (lambda () (simple-tasks:start-runner runner)) main-thread)
+  (swap-main-thread (runner-starter runner) main-thread)
   *runner*)
 
 (defun ensure-main-runner ()
