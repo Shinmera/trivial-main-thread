@@ -15,7 +15,8 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
   :homepage "https://github.com/Shinmera/trivial-main-thread"
   :serial T
   :components ((:file "package")
-               (:file "main-thread"))
+               (:file "main-thread")
+               (:file "documentation"))
   :depends-on (:trivial-features
                :bordeaux-threads
                :simple-tasks))
