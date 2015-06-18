@@ -38,10 +38,10 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
 
 (defun ensure-main-runner ()
   (unless (eql (simple-tasks:status *runner*) :running)
-    (start-task-runner)))
+    (start-main-runner)))
 
 (defun schedule-task (task)
-  (ensure-main-task-running)
+  (ensure-main-runner)
   (simple-tasks:schedule-task task *runner*))
 
 (defun call-in-main-thread (function &key blocking)
