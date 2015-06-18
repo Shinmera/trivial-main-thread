@@ -26,19 +26,21 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
                   (bt:make-thread #'ccl::housekeeping-loop :name "housekeeping"))))
 
 (defun swap-main-thread (new-function &optional (main-thread *main-thread*))
-  (let ((new-main (or #+ccl (ensure-housekeeping)
-                      NIL)))
-    (bt:interrupt-thread
-     main-thread
-     (or
-      #+ccl (lambda ()
-              (ccl:%set-toplevel
-               (lambda ()
-                 (ccl:%set-toplevel NIL)
-                 (funcall new-function)))
-              (ccl:toplevel))
-      new-function))
-    new-main))
+  (if (eql (bt:current-thread) main-thread)
+      (funcall new-function)
+      (let ((new-main (or #+ccl (ensure-housekeeping)
+                          NIL)))
+        (bt:interrupt-thread
+         main-thread
+         (or
+          #+ccl (lambda ()
+                  (ccl:%set-toplevel
+                   (lambda ()
+                     (ccl:%set-toplevel NIL)
+                     (funcall new-function)))
+                  (ccl:toplevel))
+          new-function))
+        new-main)))
 
 (defun runner-starter (runner)
   (lambda ()
@@ -61,12 +63,14 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
           (bt:destroy-thread *housekeeping*))
   runner)
 
-(defun ensure-main-runner (&key (runner *runner*))
+(defun ensure-main-runner (&key (main-thread *main-thread*) (runner *runner*))
   (unless (eql (simple-tasks:status runner) :running)
-    (start-main-runner)))
+    (when (eql (bt:current-thread) main-thread)
+      (change-class runner 'simple-tasks:runner))
+    (start-main-runner :main-thread main-thread :runner runner)))
 
-(defun ensure-main-runner-started (&key (runner *runner*))
-  (ensure-main-runner :runner runner)
+(defun ensure-main-runner-started (&key (main-thread *main-thread*) (runner *runner*))
+  (ensure-main-runner :main-thread main-thread :runner runner)
   (loop until (eql (simple-tasks:status runner) :running)
         do (sleep 0.01)))
 
