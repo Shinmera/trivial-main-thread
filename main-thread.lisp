@@ -50,7 +50,8 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
   (lambda ()
     (handler-bind ((error (lambda (err)
                             (declare (ignore err))
-                            (invoke-restart 'simple-tasks:skip))))
+                            (when (find-restart 'simple-tasks:skip)
+                              (invoke-restart 'simple-tasks:skip)))))
       (simple-tasks:start-runner runner))))
 
 (defun start-main-runner (&key main-thread (runner *runner*))
