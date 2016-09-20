@@ -1,282 +1,122 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta charset="utf-8"/>
-    <title>TRIVIAL-MAIN-THREAD</title>
-    <style type="text/css">
-      html{font-family: serif;}
-      code a{text-decoration: none;}
-      h1{display: inline-block; margin-bottom: 0;}
-      code{font-family: monospace;}
-      h4{display: inline-block; margin: 0; padding: 0;}
-      #symbol-index ul{list-style: none;}
-      .package li{margin-bottom: 20px;}
-      .package pre{margin: 0 0 0 10px; white-space: pre-wrap;}
-      .package .nicknames{font-weight: normal;}
-      table{margin: 20px;}
-      td{padding-bottom: 10px;}
-    </style>
-  </head>
-  <body>
-    <header>
-      <h1>trivial-main-thread</h1>
-      <span>1.0.0</span>
-      <p>Compatibility library to run things in the main thread.</p>
-    </header>
-    <div id="content">
-      <article>
-        <c:documentate>
-          <span><h2>About trivial-main-thread</h2>
+<!DOCTYPE html> <html xmlns="http://www.w3.org/1999/xhtml"> <head> <meta charset="utf-8"/> <title>Trivial-Main-Thread</title> <meta name="viewport" content="width=device-width"/> <meta name="description" content="Compatibility library to run things in the main thread."/> <meta name="author" content="Nicolas Hafner &lt;shinmera@tymoon.eu&gt;"/> <style type="text/css"> body{
+          max-width: 1024px;
+          margin: 0 auto 0 auto;
+          font-family: sans-serif;
+          color: #333333;
+          font-size: 14pt;
+          padding: 5px;
+      }
 
-<p>Sometimes it is absolutely necessary to run certain tasks in the main thread of the implementation. This is particularly the case with GUI applications on OS X, where only thread 0 is allowed to issue drawing calls. This library aims to help with that.</p>
+      body>header{
+          display:flex;
+          align-items: center;
+          justify-content: center;
+          flex-direction: column;
+          max-width: 100%;
+      }
 
-<h2>Why a Wrapper</h2>
+      img{
+          max-width: 100%;
+          max-height: 100%;
+      }
 
-<p>Why not just call <code>bt:interrupt-thread</code> and be done with it? Well, an implementation is not required to provide the user with the main thread, and may instead choose to use it for its own purposes. For example, CCL uses the thread for housekeeping and signal handling. As such, some implementations require workarounds to make this go by smoothly. That's why this library exists.</p>
+      code{
+          font-family: Consolas, Inconsolata, monospace;
+      }
 
-<h2>Basic Usage</h2>
+      a{
+          text-decoration: none;
+          color: #0055AA;
+      }
 
-<p>Load trivial-main-thread through ASDF or Quicklisp.</p>
+      #documentation{
+          text-align: justify;
+      }
 
-<pre><code>(ql:quickload :trivial-main-thread)
-</code></pre>
+      #documentation pre{
+          margin-left: 20px;
+      }
 
-<p>Now you can simply issue calls to be sent to the main thread by using <code><a href="#TRIVIAL-MAIN-THREAD:CALL-IN-MAIN-THREAD">call-in-main-thread</a></code> or <code><a href="#TRIVIAL-MAIN-THREAD:WITH-BODY-IN-MAIN-THREAD">with-body-in-main-thread</a></code>.</p>
+      #symbol-index>ul{
+          list-style: none;
+          padding: 0;
+      }
+      #symbol-index .package>ul{
+          list-style: none;
+          padding: 0 0 0 10px;
+      }
+      #symbol-index .package .nicknames{
+          font-weight: normal;
+      }
+      #symbol-index .package h4{
+          display: inline-block;
+          margin: 0;
+      }
+      #symbol-index .package article{
+          margin: 0 0 15px 0;
+      }
+      #symbol-index .package article header{
+          font-size: 1.2em;
+          font-weight: normal;
+      }
+      #symbol-index .package .name{
+          margin-right: 5px;
+      }
+      #symbol-index .package .docstring{
+          margin: 0 0 0 15px;
+          white-space: pre-wrap;
+          font-size: 12pt;
+      }
 
-<pre><code>(<a href="#TRIVIAL-MAIN-THREAD:CALL-IN-MAIN-THREAD">call-in-main-thread</a> (<a href="http://l1sp.org/cl/lambda">lambda</a> () (<a href="http://l1sp.org/cl/+">+</a> 1 1)))
+      @media (max-width: 800px){
+          body{font-size: 12pt;}
+      } </style> </head> <body> <header> <h1>trivial-main-thread</h1> <span class="version">1.0.0</span> <p class="description">Compatibility library to run things in the main thread.</p> </header> <main> <article id="documentation">  <div><h2>About trivial-main-thread</h2> <p>Sometimes it is absolutely necessary to run certain tasks in the main thread of the implementation. This is particularly the case with GUI applications on OS X, where only thread 0 is allowed to issue drawing calls. This library aims to help with that.</p> <h2>Why a Wrapper</h2> <p>Why not just call <code>bt:interrupt-thread</code> and be done with it? Well, an implementation is not required to provide the user with the main thread, and may instead choose to use it for its own purposes. For example, CCL uses the thread for housekeeping and signal handling. As such, some implementations require workarounds to make this go by smoothly. That's why this library exists.</p> <h2>Basic Usage</h2> <p>Load trivial-main-thread through ASDF or Quicklisp.</p> <pre><code>(ql:quickload :trivial-main-thread)
+</code></pre> <p>Now you can simply issue calls to be sent to the main thread by using <code><a href="#TRIVIAL-MAIN-THREAD:CALL-IN-MAIN-THREAD">call-in-main-thread</a></code> or <code><a href="#TRIVIAL-MAIN-THREAD:WITH-BODY-IN-MAIN-THREAD">with-body-in-main-thread</a></code>.</p> <pre><code>(<a href="#TRIVIAL-MAIN-THREAD:CALL-IN-MAIN-THREAD">call-in-main-thread</a> (<a href="http://l1sp.org/cl/lambda">lambda</a> () (<a href="http://l1sp.org/cl/+">+</a> 1 1)))
 (<a href="#TRIVIAL-MAIN-THREAD:WITH-BODY-IN-MAIN-THREAD">with-body-in-main-thread</a> (:blocking T)
   (<a href="http://l1sp.org/cl/+">+</a> 1 1))
-</code></pre>
-
-<p>Upon first usage of either of these two functions, trivial-main-thread will start a new thread to resume the main thread's functionality in if necessary, and interrupt the main thread with a task runner loop. From then on, call requests can be sent to the thread. For more information on the tasks and runners system, see <a href="https://shinmera.github.io/simple-tasks">simple-tasks</a>.</p>
-
-<p>For example, if you wanted to start a Qt application, you could do the following:</p>
-
-<pre><code>(<a href="#TRIVIAL-MAIN-THREAD:CALL-IN-MAIN-THREAD">call-in-main-thread</a> #'qt:make-qapplication)
+</code></pre> <p>Upon first usage of either of these two functions, trivial-main-thread will start a new thread to resume the main thread's functionality in if necessary, and interrupt the main thread with a task runner loop. From then on, call requests can be sent to the thread. For more information on the tasks and runners system, see <a href="https://shinmera.github.io/simple-tasks">simple-tasks</a>.</p> <p>For example, if you wanted to start a Qt application, you could do the following:</p> <pre><code>(<a href="#TRIVIAL-MAIN-THREAD:CALL-IN-MAIN-THREAD">call-in-main-thread</a> #'qt:make-qapplication)
 (<a href="#TRIVIAL-MAIN-THREAD:WITH-BODY-IN-MAIN-THREAD">with-body-in-main-thread</a> ()
   (qt:with-main-window (window (<a href="http://l1sp.org/cl/make-instance">make-instance</a> 'my-window))))
-</code></pre>
+</code></pre> <p>And the application will safely run in the main thread.</p> <p>In the case where the main thread /is/ the evaluating thread, no additional threads are started, and the runner used will simply directly run tasks.</p> <h2>Also See</h2> <ul> <li><a href="https://shinmera.github.io/simple-tasks">Simple-tasks</a> For remote task running.</li> </ul> </div>  </article> <article id="copyright">  <h2>Copyright</h2> <span>trivial-main-thread</span> is licensed under the <span><a href="https://tldrlegal.com/search?q=Artistic">Artistic</a></span> license.  © <span>Nicolas Hafner &lt;shinmera@tymoon.eu&gt;</span> .  This library can be obtained on <a href="https://github.com/Shinmera/trivial-main-thread">https://github.com/Shinmera/trivial-main-thread</a>.  </article>  <article id="symbol-index"> <h2>Package Index</h2> <ul><li class="package"> <h3> <a name="TRIVIAL-MAIN-THREAD" href="#TRIVIAL-MAIN-THREAD">TRIVIAL-MAIN-THREAD</a> <span class="nicknames">(TMT ORG.SHIRAKUMO.TRIVIAL-MAIN-THREAD)</span> </h3> <ul><li> <a name="TRIVIAL-MAIN-THREAD:*MAIN-THREAD*"> </a> <article> <header class="special"> <span class="type">special</span>  <h4 class="name"><code><a href="#TRIVIAL-MAIN-THREAD:*MAIN-THREAD*">*MAIN-THREAD*</a></code></h4>  </header> <pre class="docstring">Holds the main thread.</pre> </article> </li><li> <a name="TRIVIAL-MAIN-THREAD:*RUNNER*"> </a> <article> <header class="special"> <span class="type">special</span>  <h4 class="name"><code><a href="#TRIVIAL-MAIN-THREAD:*RUNNER*">*RUNNER*</a></code></h4>  </header> <pre class="docstring">Holds the runner object to be set into the main thread.
 
-<p>And the application will safely run in the main thread.</p>
-
-<p>In the case where the main thread /is/ the evaluating thread, no additional threads are started, and the runner used will simply directly run tasks.</p>
-
-<h2>Also See</h2>
-
-<ul>
-<li><a href="https://shinmera.github.io/simple-tasks">Simple-tasks</a> For remote task running.</li>
-</ul>
-</span>
-        </c:documentate>
-      </article>
-      <article>
-        
-          <h2>Copyright</h2>
-          <span>trivial-main-thread</span> is licensed under the <span><a href="https://tldrlegal.com/search?q=Artistic">Artistic</a></span> license.
-          
-            © <span>Nicolas Hafner &lt;shinmera@tymoon.eu&gt;</span>
-            .
-          
-          This library can be obtained on <a href="https://github.com/Shinmera/trivial-main-thread">https://github.com/Shinmera/trivial-main-thread</a>.
-        
-      </article>
-      
-        <article id="symbol-index">
-          <h2>Package Index</h2>
-          <ul><li class="package">
-              <h3>
-                <a name="TRIVIAL-MAIN-THREAD" href="#TRIVIAL-MAIN-THREAD">TRIVIAL-MAIN-THREAD</a>
-                <span class="nicknames">(TMT ORG.SHIRAKUMO.TRIVIAL-MAIN-THREAD)</span>
-              </h3>
-              <ul><li>
-                  <a name="TRIVIAL-MAIN-THREAD:*MAIN-THREAD*"/>
-                  <article>
-                    <header class="special">
-                      <span class="type">special</span>
-                      <code>
-                        <h4><a href="#TRIVIAL-MAIN-THREAD:*MAIN-THREAD*" class="name">*MAIN-THREAD*</a></h4>
-                        <span class="qualifiers"></span>
-                        <span class="arguments">()</span>
-                      </code>
-                    </header>
-                    <pre class="docstring">Holds the main thread.</pre>
-                  </article>
-                </li><li>
-                  <a name="TRIVIAL-MAIN-THREAD:*RUNNER*"/>
-                  <article>
-                    <header class="special">
-                      <span class="type">special</span>
-                      <code>
-                        <h4><a href="#TRIVIAL-MAIN-THREAD:*RUNNER*" class="name">*RUNNER*</a></h4>
-                        <span class="qualifiers"></span>
-                        <span class="arguments">()</span>
-                      </code>
-                    </header>
-                    <pre class="docstring">Holds the runner object to be set into the main thread.
-
-See SIMPLE-TASKS:RUNNER</pre>
-                  </article>
-                </li><li>
-                  <a name="TRIVIAL-MAIN-THREAD:CALL-IN-MAIN-THREAD"/>
-                  <article>
-                    <header class="function">
-                      <span class="type">function</span>
-                      <code>
-                        <h4><a href="#TRIVIAL-MAIN-THREAD:CALL-IN-MAIN-THREAD" class="name">CALL-IN-MAIN-THREAD</a></h4>
-                        <span class="qualifiers"></span>
-                        <span class="arguments">(FUNCTION &amp;KEY BLOCKING (RUNNER *RUNNER*))</span>
-                      </code>
-                    </header>
-                    <pre class="docstring">Call FUNCTION in the main thread.
+See SIMPLE-TASKS:RUNNER</pre> </article> </li><li> <a name="TRIVIAL-MAIN-THREAD:CALL-IN-MAIN-THREAD"> </a> <article> <header class="function"> <span class="type">function</span>  <code>(</code><h4 class="name"><code><a href="#TRIVIAL-MAIN-THREAD:CALL-IN-MAIN-THREAD">CALL-IN-MAIN-THREAD</a></code></h4> <code class="qualifiers"></code> <code class="arguments">FUNCTION &amp;KEY BLOCKING (RUNNER *RUNNER*)</code><code>)</code>  </header> <pre class="docstring">Call FUNCTION in the main thread.
 This always calls ENSURE-MAIN-RUNNER-STARTED.
 
 If BLOCKING is non-NIL, the current thread is blocked until the function has
 finished running. The function's return values are returned. Otherwise, the
 task created to call the function is returned.
 
-See SIMPLE-TASKS:CALL-AS-TASK</pre>
-                  </article>
-                </li><li>
-                  <a name="TRIVIAL-MAIN-THREAD:ENSURE-MAIN-RUNNER"/>
-                  <article>
-                    <header class="function">
-                      <span class="type">function</span>
-                      <code>
-                        <h4><a href="#TRIVIAL-MAIN-THREAD:ENSURE-MAIN-RUNNER" class="name">ENSURE-MAIN-RUNNER</a></h4>
-                        <span class="qualifiers"></span>
-                        <span class="arguments">(&amp;KEY (MAIN-THREAD *MAIN-THREAD*) (RUNNER *RUNNER*))</span>
-                      </code>
-                    </header>
-                    <pre class="docstring">Ensure that the main thread runner is indeed running.
+See SIMPLE-TASKS:CALL-AS-TASK</pre> </article> </li><li> <a name="TRIVIAL-MAIN-THREAD:ENSURE-MAIN-RUNNER"> </a> <article> <header class="function"> <span class="type">function</span>  <code>(</code><h4 class="name"><code><a href="#TRIVIAL-MAIN-THREAD:ENSURE-MAIN-RUNNER">ENSURE-MAIN-RUNNER</a></code></h4> <code class="qualifiers"></code> <code class="arguments">&amp;KEY MAIN-THREAD (RUNNER *RUNNER*)</code><code>)</code>  </header> <pre class="docstring">Ensure that the main thread runner is indeed running.
 
 If the MAIN-THREAD is EQL to BT:CURRENT-THREAD, then the RUNNER is
 CHANGE-CLASSed into SIMPLE-TASK:RUNNER. This runner class does not
 use threading and instead directly executes the tasks. If we did not
 do this, situations where the main thread is the currently evaluating
 thread, we would block it forever, and thus stop it from ever reaching
-any task scheduling calls.</pre>
-                  </article>
-                </li><li>
-                  <a name="TRIVIAL-MAIN-THREAD:ENSURE-MAIN-RUNNER-STARTED"/>
-                  <article>
-                    <header class="function">
-                      <span class="type">function</span>
-                      <code>
-                        <h4><a href="#TRIVIAL-MAIN-THREAD:ENSURE-MAIN-RUNNER-STARTED" class="name">ENSURE-MAIN-RUNNER-STARTED</a></h4>
-                        <span class="qualifiers"></span>
-                        <span class="arguments">(&amp;KEY (MAIN-THREAD *MAIN-THREAD*) (RUNNER *RUNNER*))</span>
-                      </code>
-                    </header>
-                    <pre class="docstring">Ensure that the main thread runner is indeed started.
+any task scheduling calls.</pre> </article> </li><li> <a name="TRIVIAL-MAIN-THREAD:ENSURE-MAIN-RUNNER-STARTED"> </a> <article> <header class="function"> <span class="type">function</span>  <code>(</code><h4 class="name"><code><a href="#TRIVIAL-MAIN-THREAD:ENSURE-MAIN-RUNNER-STARTED">ENSURE-MAIN-RUNNER-STARTED</a></code></h4> <code class="qualifiers"></code> <code class="arguments">&amp;KEY MAIN-THREAD (RUNNER *RUNNER*)</code><code>)</code>  </header> <pre class="docstring">Ensure that the main thread runner is indeed started.
 This calls ENSURE-MAIN-RUNNER and then sleeps until the runner reports itself
-as running.</pre>
-                  </article>
-                </li><li>
-                  <a name="TRIVIAL-MAIN-THREAD:FIND-MAIN-THREAD"/>
-                  <article>
-                    <header class="function">
-                      <span class="type">function</span>
-                      <code>
-                        <h4><a href="#TRIVIAL-MAIN-THREAD:FIND-MAIN-THREAD" class="name">FIND-MAIN-THREAD</a></h4>
-                        <span class="qualifiers"></span>
-                        <span class="arguments">()</span>
-                      </code>
-                    </header>
-                    <pre class="docstring">Attempts to find the main thread (thread 0) of the implementation.
+as running.</pre> </article> </li><li> <a name="TRIVIAL-MAIN-THREAD:FIND-MAIN-THREAD"> </a> <article> <header class="function"> <span class="type">function</span>  <code>(</code><h4 class="name"><code><a href="#TRIVIAL-MAIN-THREAD:FIND-MAIN-THREAD">FIND-MAIN-THREAD</a></code></h4> <code class="qualifiers"></code> <code class="arguments"></code><code>)</code>  </header> <pre class="docstring">Attempts to find the main thread (thread 0) of the implementation.
 
 If no implementation specific handling is implemented, the last thread in
-the list of threads reported by BT:ALL-THREADS is primitively chosen.</pre>
-                  </article>
-                </li><li>
-                  <a name="TRIVIAL-MAIN-THREAD:SCHEDULE-TASK"/>
-                  <article>
-                    <header class="function">
-                      <span class="type">function</span>
-                      <code>
-                        <h4><a href="#TRIVIAL-MAIN-THREAD:SCHEDULE-TASK" class="name">SCHEDULE-TASK</a></h4>
-                        <span class="qualifiers"></span>
-                        <span class="arguments">(TASK &amp;OPTIONAL (RUNNER *RUNNER*))</span>
-                      </code>
-                    </header>
-                    <pre class="docstring">Schedule TASK to be run on the main thread runner.
+the list of threads reported by BT:ALL-THREADS is primitively chosen.</pre> </article> </li><li> <a name="TRIVIAL-MAIN-THREAD:SCHEDULE-TASK"> </a> <article> <header class="function"> <span class="type">function</span>  <code>(</code><h4 class="name"><code><a href="#TRIVIAL-MAIN-THREAD:SCHEDULE-TASK">SCHEDULE-TASK</a></code></h4> <code class="qualifiers"></code> <code class="arguments">TASK &amp;OPTIONAL (RUNNER *RUNNER*)</code><code>)</code>  </header> <pre class="docstring">Schedule TASK to be run on the main thread runner.
 This always calls ENSURE-MAIN-RUNNER-STARTED.
 
-See SIMPLE-TASKS:SCHEDULE-TASK</pre>
-                  </article>
-                </li><li>
-                  <a name="TRIVIAL-MAIN-THREAD:START-MAIN-RUNNER"/>
-                  <article>
-                    <header class="function">
-                      <span class="type">function</span>
-                      <code>
-                        <h4><a href="#TRIVIAL-MAIN-THREAD:START-MAIN-RUNNER" class="name">START-MAIN-RUNNER</a></h4>
-                        <span class="qualifiers"></span>
-                        <span class="arguments">(&amp;KEY (MAIN-THREAD *MAIN-THREAD*) (RUNNER *RUNNER*))</span>
-                      </code>
-                    </header>
-                    <pre class="docstring">Starts the runner in the main thread.
+See SIMPLE-TASKS:SCHEDULE-TASK</pre> </article> </li><li> <a name="TRIVIAL-MAIN-THREAD:START-MAIN-RUNNER"> </a> <article> <header class="function"> <span class="type">function</span>  <code>(</code><h4 class="name"><code><a href="#TRIVIAL-MAIN-THREAD:START-MAIN-RUNNER">START-MAIN-RUNNER</a></code></h4> <code class="qualifiers"></code> <code class="arguments">&amp;KEY MAIN-THREAD (RUNNER *RUNNER*)</code><code>)</code>  </header> <pre class="docstring">Starts the runner in the main thread.
 
 If a runner or main-thread is passed explicitly, *RUNNER* and *MAIN-THREAD*
 are set to those values respectively.
 
 See SIMPLE-TASKS:START-RUNNER
-See SWAP-MAIN-THREAD</pre>
-                  </article>
-                </li><li>
-                  <a name="TRIVIAL-MAIN-THREAD:STOP-MAIN-RUNNER"/>
-                  <article>
-                    <header class="function">
-                      <span class="type">function</span>
-                      <code>
-                        <h4><a href="#TRIVIAL-MAIN-THREAD:STOP-MAIN-RUNNER" class="name">STOP-MAIN-RUNNER</a></h4>
-                        <span class="qualifiers"></span>
-                        <span class="arguments">(&amp;KEY (MAIN-THREAD *MAIN-THREAD*) (RUNNER *RUNNER*))</span>
-                      </code>
-                    </header>
-                    <pre class="docstring">Stops the runner in the main thread, allowing it to continue.
+See SWAP-MAIN-THREAD</pre> </article> </li><li> <a name="TRIVIAL-MAIN-THREAD:STOP-MAIN-RUNNER"> </a> <article> <header class="function"> <span class="type">function</span>  <code>(</code><h4 class="name"><code><a href="#TRIVIAL-MAIN-THREAD:STOP-MAIN-RUNNER">STOP-MAIN-RUNNER</a></code></h4> <code class="qualifiers"></code> <code class="arguments">&amp;KEY MAIN-THREAD (RUNNER *RUNNER*)</code><code>)</code>  </header> <pre class="docstring">Stops the runner in the main thread, allowing it to continue.
 
 This will destroy any sidestepping thread that might have been created by
-SWAP-THREAD.</pre>
-                  </article>
-                </li><li>
-                  <a name="TRIVIAL-MAIN-THREAD:SWAP-MAIN-THREAD"/>
-                  <article>
-                    <header class="function">
-                      <span class="type">function</span>
-                      <code>
-                        <h4><a href="#TRIVIAL-MAIN-THREAD:SWAP-MAIN-THREAD" class="name">SWAP-MAIN-THREAD</a></h4>
-                        <span class="qualifiers"></span>
-                        <span class="arguments">(NEW-FUNCTION &amp;OPTIONAL (MAIN-THREAD *MAIN-THREAD*))</span>
-                      </code>
-                    </header>
-                    <pre class="docstring">Swaps the main thread for our own FUNCTION.
+SWAP-THREAD.</pre> </article> </li><li> <a name="TRIVIAL-MAIN-THREAD:SWAP-MAIN-THREAD"> </a> <article> <header class="function"> <span class="type">function</span>  <code>(</code><h4 class="name"><code><a href="#TRIVIAL-MAIN-THREAD:SWAP-MAIN-THREAD">SWAP-MAIN-THREAD</a></code></h4> <code class="qualifiers"></code> <code class="arguments">NEW-FUNCTION &amp;OPTIONAL MAIN-THREAD</code><code>)</code>  </header> <pre class="docstring">Swaps the main thread for our own FUNCTION.
 
 If the implementation uses the main thread for vital tasks, this function
 tries to ensure that these vital tasks are continued in a new thread instead.
 
 If the MAIN-THREAD is EQL to BT:CURRENT-THREAD, then the FUNCTION is simply
-called.</pre>
-                  </article>
-                </li><li>
-                  <a name="TRIVIAL-MAIN-THREAD:WITH-BODY-IN-MAIN-THREAD"/>
-                  <article>
-                    <header class="macro">
-                      <span class="type">macro</span>
-                      <code>
-                        <h4><a href="#TRIVIAL-MAIN-THREAD:WITH-BODY-IN-MAIN-THREAD" class="name">WITH-BODY-IN-MAIN-THREAD</a></h4>
-                        <span class="qualifiers"></span>
-                        <span class="arguments">((&amp;KEY BLOCKING (RUNNER '*RUNNER*)) &amp;BODY BODY)</span>
-                      </code>
-                    </header>
-                    <pre class="docstring">Evaluate the BODY in the main thread.
+called.</pre> </article> </li><li> <a name="TRIVIAL-MAIN-THREAD:WITH-BODY-IN-MAIN-THREAD"> </a> <article> <header class="macro"> <span class="type">macro</span>  <code>(</code><h4 class="name"><code><a href="#TRIVIAL-MAIN-THREAD:WITH-BODY-IN-MAIN-THREAD">WITH-BODY-IN-MAIN-THREAD</a></code></h4> <code class="qualifiers"></code> <code class="arguments">&amp;REST ARGS</code><code>)</code>  </header> <pre class="docstring">Evaluate the BODY in the main thread.
 This always calls ENSURE-MAIN-RUNNER-STARTED.
 
-See CALL-IN-MAIN-THREAD</pre>
-                  </article>
-                </li></ul>
-            </li></ul>
-        </article>
-      
-    </div>
-  </body>
-</html>
+See CALL-IN-MAIN-THREAD</pre> </article> </li></ul> </li></ul> </article>  </main> </body> </html> 
