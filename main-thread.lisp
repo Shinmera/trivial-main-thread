@@ -12,6 +12,7 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
   (or
    #+sbcl (find "main thread" (bt:all-threads) :from-end T :key #'sb-thread:thread-name :test #'equal)
    #+ecl (find 'si:top-level (bt:all-threads) :from-end T :key #'mp:process-name)
+   #+clasp (find 'si:top-level (bt:all-threads) :from-end T :key #'mp:process-name)
    #+ccl ccl::*initial-process*
    (progn (warn "Couldn't find main thread reliably, choosing last thread.")
           (car (last (bt:all-threads))))))
