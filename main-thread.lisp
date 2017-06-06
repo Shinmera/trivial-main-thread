@@ -10,10 +10,12 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
 
 (defun find-main-thread ()
   (or
-   #+sbcl (find "main thread" (bt:all-threads) :from-end T :key #'sb-thread:thread-name :test #'equal)
+   #+sbcl (sb-thread:main-thread)
    #+ecl (find 'si:top-level (bt:all-threads) :from-end T :key #'mp:process-name)
    #+clasp (find 'si:top-level (bt:all-threads) :from-end T :key #'mp:process-name)
    #+ccl ccl::*initial-process*
+   ;; https://github.com/rtoy/cmucl/blob/master/src/code/multi-proc.lisp#L1530 suggests this should be reliable
+   #+cmucl (find "Initial" mp:*all-processes* :test #'equal :key #'mp:process-name)
    (progn (warn "Couldn't find main thread reliably, choosing last thread.")
           (car (last (bt:all-threads))))))
 
