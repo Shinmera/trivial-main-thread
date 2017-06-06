@@ -10,7 +10,7 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
 
 (defun find-main-thread ()
   (or
-   #+sbcl (find "main thread" (bt:all-threads) :from-end T :key #'sb-thread:thread-name :test #'equal)
+   #+sbcl (sb-thread:main-thread)
    #+ecl (find 'si:top-level (bt:all-threads) :from-end T :key #'mp:process-name)
    #+clasp (find 'si:top-level (bt:all-threads) :from-end T :key #'mp:process-name)
    #+ccl ccl::*initial-process*
