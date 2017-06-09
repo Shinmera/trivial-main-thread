@@ -27,6 +27,22 @@ And the application will safely run in the main thread.
 
 In the case where the main thread /is/ the evaluating thread, no additional threads are started, and the runner used will simply directly run tasks.
 
+## Supported Implementations
+
+* Allegro
+* CCL
+* CMUCL
+* Clasp
+* ECL
+* LispWorks
+* MKCL
+* SBCL
+
+The following are explicitly unsupported:
+
+* ABCL --- By default the JVM steals the main thread and does not give it to you. If you want to use ABCL on OS X, you'll have to figure out how to make ABCL launch on thread0.
+* Corman --- This implementation does not even give access to a thread listing.
+
 ## Also See
 
 * [Simple-tasks](https://shinmera.github.io/simple-tasks) For remote task running.
