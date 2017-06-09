@@ -16,6 +16,9 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
    #+ccl ccl::*initial-process*
    ;; https://github.com/rtoy/cmucl/blob/master/src/code/multi-proc.lisp#L1530 suggests this should be reliable
    #+cmucl (find "Initial" mp:*all-processes* :test #'equal :key #'mp:process-name)
+   #+allegro (find "Initial Lisp Listener" mp:*all-processes* :test #'equal :key #'mp:process-name)
+   #+mkcl (find "Initial" (mt:all-threads) :test #'equal :key #'mt:thread-name)
+   #+lispworks mp:*main-process*
    (progn (warn "Couldn't find main thread reliably, choosing last thread.")
           (car (last (bt:all-threads))))))
 
