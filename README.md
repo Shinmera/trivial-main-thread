@@ -27,6 +27,16 @@ And the application will safely run in the main thread.
 
 In the case where the main thread /is/ the evaluating thread, no additional threads are started, and the runner used will simply directly run tasks.
 
+## Implementation Support
+
+This library is known to work with sbcl, ccl, ecl, clasp & cmucl.
+
+We could not provide support to the following due to the not having a way to query the main-thread: allegro, abcl, corman & scl.
+
+And lastly mkcl & lispworks, whilst having the concept of a main-thread, do not support trivial-main-thread's other dependencies.
+
+Mileage on other CL implementations will vary.
+
 ## Also See
 
 * [Simple-tasks](https://shinmera.github.io/simple-tasks) For remote task running.
