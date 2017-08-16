@@ -1,10 +1,8 @@
 #|
-This file is a part of trivial-main-thread
-(c) 2015 Shirakumo http://tymoon.eu (shinmera@tymoon.eu)
-Author: Nicolas Hafner <shinmera@tymoon.eu>
+ This file is a part of trivial-main-thread
+ (c) 2015 Shirakumo http://tymoon.eu (shinmera@tymoon.eu)
+ Author: Nicolas Hafner <shinmera@tymoon.eu>
 |#
-
-(in-package #:cl-user)
 
 (asdf:defsystem trivial-main-thread
   :version "1.0.0"
