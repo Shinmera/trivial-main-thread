@@ -6,7 +6,7 @@
 
 (asdf:defsystem trivial-main-thread
   :version "1.0.0"
-  :license "Artistic"
+  :license "zlib"
   :author "Nicolas Hafner <shinmera@tymoon.eu>"
   :maintainer "Nicolas Hafner <shinmera@tymoon.eu>"
   :description "Compatibility library to run things in the main thread."
