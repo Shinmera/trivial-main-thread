@@ -1,9 +1,3 @@
-#|
-This file is a part of trivial-main-thread
-(c) 2015 Shirakumo http://tymoon.eu (shinmera@tymoon.eu)
-Author: Nicolas Hafner <shinmera@tymoon.eu>
-|#
-
 (in-package #:trivial-main-thread)
 
 (defvar *runner* (make-instance 'simple-tasks:queued-runner))
