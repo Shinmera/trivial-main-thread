@@ -1,0 +1,57 @@
+## About trivial-main-thread
+Sometimes it is absolutely necessary to run certain tasks in the main thread of the implementation. This is particularly the case with GUI applications on OS X, where only thread 0 is allowed to issue drawing calls. This library aims to help with that.
+
+## Why a Wrapper
+Why not just call ``bt:interrupt-thread`` and be done with it? Well, an implementation is not required to provide the user with the main thread, and may instead choose to use it for its own purposes. For example, CCL uses the thread for housekeeping and signal handling. As such, some implementations require workarounds to make this go by smoothly. That's why this library exists.
+
+## Basic Usage
+Load trivial-main-thread through ASDF or Quicklisp.
+
+:: common lisp
+(ql:quickload :trivial-main-thread)
+::
+
+Now you can simply issue calls to be sent to the main thread by using ``call-in-main-thread`` or ``with-body-in-main-thread``.
+
+:: common lisp
+(call-in-main-thread (lambda () (+ 1 1)))
+(with-body-in-main-thread (:blocking T)
+  (+ 1 1))
+::
+
+Upon first usage of either of these two functions, trivial-main-thread will start a new thread to resume the main thread's functionality in if necessary, and interrupts the main thread with a task runner loop. From then on, call requests can be sent to the thread.
+
+For example, if you wanted to start a Qt application, you could do the following:
+
+:: common lisp
+(call-in-main-thread #'qt:make-qapplication)
+(with-body-in-main-thread ()
+  (qt:with-main-window (window (make-instance 'my-window))))
+::
+
+And the application will safely run in the main thread.
+
+In the case where the main thread //is// the evaluating thread, no additional threads are started, and the runner used will simply directly run tasks.
+
+Note that you **must not** interact with the functions from this library prior to dumping an image, as it will cache the thread object internally when you do so. However, this object will be invalid when the implementation resumes from image. Thus, ensure that you only call these functions in your image resume function.
+
+## Supported Implementations
+
+- Allegro
+- CCL
+- CMUCL
+- Clasp
+- ECL
+- LispWorks
+- MKCL
+- SBCL
+
+The following are explicitly unsupported:
+
+- ABCL
+  By default the JVM steals the main thread and does not give it to you. If you want to use ABCL on OS X, you'll have to figure out how to make ABCL launch on thread0.
+- Corman
+  This implementation does not even give access to a thread listing.
+
+## Changes in Version 2
+This has been rewritten to remove the dependency on simple-tasks, using a trivial internal queue implementation instead. The API has also been streamlined, removing access to some internal functions that should not have been exposed. Error handling behaviour has also been improved via the ``*on-error*`` variable.

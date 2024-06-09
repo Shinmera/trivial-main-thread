@@ -1,0 +1,133 @@
+<!DOCTYPE html> <html lang="EN"> <head> <meta charset="utf-8"> <title>Trivial Main Thread</title> <style>html body{margin:0 auto 0 auto;padding:20px;max-width:1024px;font-family:sans-serif;font-size:14pt;overflow-y:scroll;}html body a{text-decoration:none;}html body a[href]{color:#0055AA;}html body a[href]:hover{color:#0088EE;}html body pre{background:#FAFAFA;border:1px solid #DDDDDD;padding:0.75em;overflow-x:auto;}html body pre >code a[href]{color:#223388;}article.project h1{font-size:1.7em;}article.project h1,article.project h2,article.project h3,article.project h4,article.project h5,article.project h6{margin:0.2em 0 0.1em 0;text-indent:1em;}article.project >header{text-align:center;}article.project >header img.logo{display:block;margin:auto;max-height:170px;}article.project >header h1{display:inline-block;text-indent:0;font-size:2.5em;}article.project >header .version{vertical-align:bottom;}article.project >header .languages{margin-top:-0.5em;text-transform:capitalize;}article.project >header .description{margin:0;}article.project >header .pages{margin-top:0.5em;font-size:1.2em;text-transform:capitalize;}article.project >header .pages a{display:inline-block;padding:0 0.2em;}article.project >section{margin:1em 0 1em 0;}article.project >section img{max-width:100%;}article.project #index >ul{list-style:none;margin:0;padding:0;}article.project .row label{display:inline-block;min-width:8em;}article.project #system .row{display:flex;}article.project #system #dependencies{display:inline;margin:0;padding:0;}article.project #system #dependencies li{display:inline;padding:0 0.2em;}article.project #system #author label{vertical-align:top;}article.project #system #author ul{display:inline-block;margin:0;padding:0;list-style:none;}article.definition{margin:1em 0 0 0;}article.definition >header h1,article.definition >header h2,article.definition >header h3,article.definition >header h4,article.definition >header h5,article.definition >header h6{text-indent:0;display:inline-block;}article.definition >header ul{display:inline-block;list-style:none;margin:0;padding:0;}article.definition >header ul li{display:inline-block;padding:0 0.2em 0 0;}article.definition >header .visibility{display:none;}article.definition >header .visibility,article.definition >header .type{text-transform:lowercase;}article.definition >header .source-link{visibility:hidden;float:right;}article.definition >header .source-link:after{visibility:visible;content:"[SRC]";}article.definition .docstring{margin:0 0 0 1em;}article.definition .docstring pre{font-size:0.8em;white-space:pre-wrap;}.definition.package >header ul.nicknames{display:inline-block;list-style:none;margin:0;padding:0 0 0 1em;}.definition.package >header ul.nicknames li{display:inline;}.definition.package >header ul.nicknames:before{content:"(";}.definition.package >header ul.nicknames:after{content:")";}.definition.package ul.definitions{margin:0;list-style:none;padding:0 0 0 0.5em;}.definition.callable >header .name:before,.definition.type >header .name:before{content:"(";font-weight:normal;}.definition.callable >header .arguments:after,.definition.type >header .arguments:after{content:")";}.definition.callable >header .arguments .arguments:before,.definition.type >header .arguments .arguments:before{content:"(";}.definition.callable >header .arguments .argument,.definition.type >header .arguments .argument{padding:0;}.definition.callable >header .arguments .argument.lambda-list-keyword,.definition.type >header .arguments .argument.lambda-list-keyword{color:#991155;}.definition li>mark{background:none;border-left:0.3em solid #0088EE;padding-left:0.3em;display:block;}</style> </head> <body> <article class="project"> <header>   <h1>trivial main thread</h1>   <span class="version">2.0.0</span>    <p class="description">Compatibility library to run things in the main thread.</p>   </header> <section id="documentation"><article><h2 id="about trivial-main-thread">About trivial-main-thread</h2><p>Sometimes it is absolutely necessary to run certain tasks in the main thread of the implementation. This is particularly the case with GUI applications on OS X, where only thread 0 is allowed to issue drawing calls. This library aims to help with that.</p><h2 id="why a wrapper">Why a Wrapper</h2><p>Why not just call <code>bt:interrupt-thread</code> and be done with it? Well, an implementation is not required to provide the user with the main thread, and may instead choose to use it for its own purposes. For example, CCL uses the thread for housekeeping and signal handling. As such, some implementations require workarounds to make this go by smoothly. That's why this library exists.</p><h2 id="basic usage">Basic Usage</h2><p>Load trivial-main-thread through ASDF or Quicklisp.</p><code style="display:block" class="code-block" data-language="common lisp"><pre>(ql:quickload :trivial-main-thread)</pre></code><p>Now you can simply issue calls to be sent to the main thread by using <code><a href="#FUNCTION%20TRIVIAL-MAIN-THREAD%3ACALL-IN-MAIN-THREAD" class="xref">call-in-main-thread</a></code> or <code><a href="#MACRO-FUNCTION%20TRIVIAL-MAIN-THREAD%3AWITH-BODY-IN-MAIN-THREAD" class="xref">with-body-in-main-thread</a></code>.</p><code style="display:block" class="code-block" data-language="common lisp"><pre>(<a href="#FUNCTION%20TRIVIAL-MAIN-THREAD%3ACALL-IN-MAIN-THREAD" class="xref">call-in-main-thread</a> (lambda () (<a href="http://l1sp.org/cl/%2B" class="xref">+</a> 1 1)))
+<a href="#FUNCTION%20TRIVIAL-MAIN-THREAD%3ACALL-IN-MAIN-THREAD" class="xref">(with-body-in-main-thread (:blocking T)
+  (+ 1 1))</a></pre></code><p>Upon first usage of either of these two functions, trivial-main-thread will start a new thread to resume the main thread's functionality in if necessary, and interrupts the main thread with a task runner loop. From then on, call requests can be sent to the thread.</p><p>For example, if you wanted to start a Qt application, you could do the following:</p><code style="display:block" class="code-block" data-language="common lisp"><pre>(call-in-main-thread #'qt:make-qapplication)
+(with-body-in-main-thread ()
+  (qt:with-main-window (window (make-instance 'my-window))))</pre></code><p>And the application will safely run in the main thread.</p><p>In the case where the main thread <em>is</em> the evaluating thread, no additional threads are started, and the runner used will simply directly run tasks.</p><p>Note that you <strong>must not</strong> interact with the functions from this library prior to dumping an image, as it will cache the thread object internally when you do so. However, this object will be invalid when the implementation resumes from image. Thus, ensure that you only call these functions in your image resume function.</p><h2 id="supported implementations">Supported Implementations</h2><ul><li><p>Allegro</p></li><li><p>CCL</p></li><li><p>CMUCL</p></li><li><p>Clasp</p></li><li><p>ECL</p></li><li><p>LispWorks</p></li><li><p>MKCL</p></li><li><p>SBCL</p></li></ul><p>The following are explicitly unsupported:</p><ul><li><p>ABCL<br>By default the JVM steals the main thread and does not give it to you. If you want to use ABCL on OS X, you'll have to figure out how to make ABCL launch on thread0.</p></li><li><p>Corman<br>This implementation does not even give access to a thread listing.</p></li></ul><h2 id="changes in version 2">Changes in Version 2</h2><p>This has been rewritten to remove the dependency on simple-tasks, using a trivial internal queue implementation instead. The API has also been streamlined, removing access to some internal functions that should not have been exposed. Error handling behaviour has also been improved via the <code><a href="#VARIABLE%20TRIVIAL-MAIN-THREAD%3A%2AON-ERROR%2A" class="xref">*on-error*</a></code> variable.</p></article></section>   <section id="system"> <h2>System Information</h2>  <div class="row"> <label for="version">Version:</label> <a id="version">2.0.0</a> </div>   <div class="row"> <label for="dependencies">Dependencies:</label> <ul id="dependencies"><li><a class="external">trivial-features</a></li><li><a class="external" href="https://Shinmera.github.io/documentation-utils/">documentation-utils</a></li><li><a class="external">bordeaux-threads</a></li></ul> </div>   <div class="row" id="author"> <label for="author">Author:</label> <a href="mailto:shinmera@tymoon.eu">Yukari Hafner</a> </div>   <div class="row"> <label for="license">License:</label> <a id="license" href="https://github.com/Shinmera/trivial-main-thread/blob/12862c2abd1ba391460bb37221ede1fe802c7b58/LICENSE">zlib</a> </div>   <div class="row"> <label for="homepage">Homepage:</label> <a id="homepage" href="https://Shinmera.github.io/trivial-main-thread/">https://Shinmera.github.io/trivial-main-thread/</a> </div>   <div class="row"> <label for="bug-tracker">Bug Tracker:</label> <a id="bug-tracker" href="https://github.com/Shinmera/trivial-main-thread/issues">https://github.com/Shinmera/trivial-main-thread/issues</a> </div>   <div class="row"> <label for="sources">Sources:</label> <a id="sources" href="https://github.com/Shinmera/trivial-main-thread.git">https://github.com/Shinmera/trivial-main-thread.git</a> </div>  </section>    <section id="index"> <h2>Definition Index</h2> <ul> <li> <article class="definition package" id="PACKAGE TRIVIAL-MAIN-THREAD"> <header> <h3> <a href="#PACKAGE%20TRIVIAL-MAIN-THREAD">TRIVIAL-MAIN-THREAD</a> </h3> <ul class="nicknames"> <li>ORG.SHIRAKUMO.TRIVIAL-MAIN-THREAD</li>  <li>TMT</li> </ul>  </header> <div class="docstring"><i>No documentation provided.</i></div> <ul class="definitions"> <li> <article class="definition special-variable" id="VARIABLE TRIVIAL-MAIN-THREAD:*ON-ERROR*"> <header> <span class="visibility">EXTERNAL</span> <span class="type">SPECIAL-VARIABLE</span> <h4 class="name"> <a href="#VARIABLE%20TRIVIAL-MAIN-THREAD%3A%2AON-ERROR%2A">*ON-ERROR*</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments"></ul>  <a class="source-link" href="https://github.com/Shinmera/trivial-main-thread/blob/12862c2abd1ba391460bb37221ede1fe802c7b58/main-thread.lisp#L7">Source</a>  </header> <div class="docstring"><pre>Sets what to do if an error is signalled in the main thread runner.
+
+The value may be one of the following:
+  :RESIGNAL --- Resignal the condition in the calling thread. If the
+                condition is not caused by a task, the debugger is
+                invoked instead
+  :QUIT     --- The implementation exits via UIOP:QUIT
+  NIL
+  :IGNORE   --- The error is not handled and the behaviour is
+                implementation-dependent
+  FUNCTION
+  SYMBOL    --- The named function is invoked with the error. Note
+                that this makes the following also permissible:
+    STOP-MAIN-RUNNER
+    INVOKE-DEBUGGER
+    CONTINUE
+    ABORT
+
+Defaults to :RESIGNAL
+
+See <a href="#FUNCTION%20TRIVIAL-MAIN-THREAD%3ASTART-MAIN-RUNNER" class="xref">START-MAIN-RUNNER</a>
+See <a href="#FUNCTION%20TRIVIAL-MAIN-THREAD%3ASTOP-MAIN-RUNNER" class="xref">STOP-MAIN-RUNNER</a>
+See <a href="http://l1sp.org/cl/invoke-debugger" class="xref">CL:INVOKE-DEBUGGER</a>
+See <a href="http://l1sp.org/cl/continue" class="xref">CL:CONTINUE</a>
+See <a href="http://l1sp.org/cl/abort" class="xref">CL:ABORT</a>
+See UIOP:QUIT</pre></div> </article> </li>  <li> <article class="definition function callable" id="FUNCTION TRIVIAL-MAIN-THREAD:CALL-IN-MAIN-THREAD"> <header> <span class="visibility">EXTERNAL</span> <span class="type">FUNCTION</span> <h4 class="name"> <a href="#FUNCTION%20TRIVIAL-MAIN-THREAD%3ACALL-IN-MAIN-THREAD">CALL-IN-MAIN-THREAD</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">FUNCTION</li>    <li class="argument lambda-list-keyword">&amp;KEY</li>    <li class="argument">BLOCKING</li>  </ul>  <a class="source-link" href="https://github.com/Shinmera/trivial-main-thread/blob/12862c2abd1ba391460bb37221ede1fe802c7b58/main-thread.lisp#L116">Source</a>  </header> <div class="docstring"><pre>Call FUNCTION in the main thread.
+
+If this is called in the main thread, the function is simply invoked.
+
+Otherwise, ENSURE-MAIN-RUNNER is called and the function is scheduled for
+execution.
+
+If BLOCKING is non-NIL, the current thread is blocked until the
+function has finished running and the function's return values are
+returned. If the function signals an error and *ON-ERROR* is :RESIGNAL,
+the error is re-signaled in the calling thread.
+
+See <a href="#VARIABLE%20TRIVIAL-MAIN-THREAD%3A%2AON-ERROR%2A" class="xref">*ON-ERROR*</a>
+See <a href="#FUNCTION%20TRIVIAL-MAIN-THREAD%3AMAIN-THREAD-P" class="xref">MAIN-THREAD-P</a>
+See <a href="#FUNCTION%20TRIVIAL-MAIN-THREAD%3AENSURE-MAIN-RUNNER" class="xref">ENSURE-MAIN-RUNNER</a></pre></div> </article> </li>  <li> <article class="definition function callable" id="FUNCTION TRIVIAL-MAIN-THREAD:ENSURE-MAIN-RUNNER"> <header> <span class="visibility">EXTERNAL</span> <span class="type">FUNCTION</span> <h4 class="name"> <a href="#FUNCTION%20TRIVIAL-MAIN-THREAD%3AENSURE-MAIN-RUNNER">ENSURE-MAIN-RUNNER</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments"></ul>  <a class="source-link" href="https://github.com/Shinmera/trivial-main-thread/blob/12862c2abd1ba391460bb37221ede1fe802c7b58/main-thread.lisp#L104">Source</a>  </header> <div class="docstring"><pre>Ensure that the main thread runner is indeed running.
+
+See <a href="#FUNCTION%20TRIVIAL-MAIN-THREAD%3ASTART-MAIN-RUNNER" class="xref">START-MAIN-RUNNER</a>
+See <a href="#FUNCTION%20TRIVIAL-MAIN-THREAD%3ASTOP-MAIN-RUNNER" class="xref">STOP-MAIN-RUNNER</a></pre></div> </article> </li>  <li> <article class="definition function callable" id="FUNCTION TRIVIAL-MAIN-THREAD:MAIN-THREAD"> <header> <span class="visibility">EXTERNAL</span> <span class="type">FUNCTION</span> <h4 class="name"> <a href="#FUNCTION%20TRIVIAL-MAIN-THREAD%3AMAIN-THREAD">MAIN-THREAD</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments"></ul>  <a class="source-link" href="https://github.com/Shinmera/trivial-main-thread/blob/12862c2abd1ba391460bb37221ede1fe802c7b58/main-thread.lisp#L24">Source</a>  </header> <div class="docstring"><pre>Returns the main thread.
+
+See <a href="#FUNCTION%20TRIVIAL-MAIN-THREAD%3AMAIN-THREAD-P" class="xref">MAIN-THREAD-P</a></pre></div> </article> </li>  <li> <article class="definition function callable" id="FUNCTION TRIVIAL-MAIN-THREAD:MAIN-THREAD-P"> <header> <span class="visibility">EXTERNAL</span> <span class="type">FUNCTION</span> <h4 class="name"> <a href="#FUNCTION%20TRIVIAL-MAIN-THREAD%3AMAIN-THREAD-P">MAIN-THREAD-P</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument lambda-list-keyword">&amp;OPTIONAL</li>    <li class="argument">THREAD</li>  </ul>  <a class="source-link" href="https://github.com/Shinmera/trivial-main-thread/blob/12862c2abd1ba391460bb37221ede1fe802c7b58/main-thread.lisp#L36">Source</a>  </header> <div class="docstring"><pre>Returns true if the given thread is the main thread.
+
+See <a href="#FUNCTION%20TRIVIAL-MAIN-THREAD%3AMAIN-THREAD" class="xref">MAIN-THREAD</a></pre></div> </article> </li>  <li> <article class="definition function callable" id="FUNCTION TRIVIAL-MAIN-THREAD:START-MAIN-RUNNER"> <header> <span class="visibility">EXTERNAL</span> <span class="type">FUNCTION</span> <h4 class="name"> <a href="#FUNCTION%20TRIVIAL-MAIN-THREAD%3ASTART-MAIN-RUNNER">START-MAIN-RUNNER</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments"></ul>  <a class="source-link" href="https://github.com/Shinmera/trivial-main-thread/blob/12862c2abd1ba391460bb37221ede1fe802c7b58/main-thread.lisp#L89">Source</a>  </header> <div class="docstring"><pre>Starts the runner in the main thread.
+
+If the runner is already running, an error is signalled.
+
+Otherwise, the main thread is hijacked via SWAP-MAIN-THREAD.
+The runner keeps a queue of tasks (function thunks) to invoke. When it
+gets woken up to process tasks (via CALL-IN-MAIN-THREAD), it goes
+through the queue, invokes the functions in sequence, and puts the
+function's return values back into the queue so the caller can process
+them. If an error is signalled during task processing, the behaviour
+described in *ON-ERROR* is executed.
+
+See <a href="#VARIABLE%20TRIVIAL-MAIN-THREAD%3A%2AON-ERROR%2A" class="xref">*ON-ERROR*</a>
+See <a href="#FUNCTION%20TRIVIAL-MAIN-THREAD%3ASWAP-MAIN-THREAD" class="xref">SWAP-MAIN-THREAD</a>
+See <a href="#FUNCTION%20TRIVIAL-MAIN-THREAD%3AENSURE-MAIN-RUNNER" class="xref">ENSURE-MAIN-RUNNER</a></pre></div> </article> </li>  <li> <article class="definition function callable" id="FUNCTION TRIVIAL-MAIN-THREAD:STOP-MAIN-RUNNER"> <header> <span class="visibility">EXTERNAL</span> <span class="type">FUNCTION</span> <h4 class="name"> <a href="#FUNCTION%20TRIVIAL-MAIN-THREAD%3ASTOP-MAIN-RUNNER">STOP-MAIN-RUNNER</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument lambda-list-keyword">&amp;OPTIONAL</li>    <li class="argument">RETURN</li>  </ul>  <a class="source-link" href="https://github.com/Shinmera/trivial-main-thread/blob/12862c2abd1ba391460bb37221ede1fe802c7b58/main-thread.lisp#L94">Source</a>  </header> <div class="docstring"><pre>Stops the runner in the main thread, allowing it to continue.
+
+If the runner is not running in the main thread, an error is
+signalled. If this is called from within the runner, the function
+causes an unwind.
+
+See <a href="#FUNCTION%20TRIVIAL-MAIN-THREAD%3ASTART-MAIN-RUNNER" class="xref">START-MAIN-RUNNER</a></pre></div> </article> </li>  <li> <article class="definition function callable" id="FUNCTION TRIVIAL-MAIN-THREAD:SWAP-MAIN-THREAD"> <header> <span class="visibility">EXTERNAL</span> <span class="type">FUNCTION</span> <h4 class="name"> <a href="#FUNCTION%20TRIVIAL-MAIN-THREAD%3ASWAP-MAIN-THREAD">SWAP-MAIN-THREAD</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">NEW-FUNCTION</li>  </ul>  <a class="source-link" href="https://github.com/Shinmera/trivial-main-thread/blob/12862c2abd1ba391460bb37221ede1fe802c7b58/main-thread.lisp#L39">Source</a>  </header> <div class="docstring"><pre>Swaps the main thread for our own FUNCTION.
+
+If the implementation uses the main thread for vital tasks, this function
+tries to ensure that these vital tasks are continued in a new thread instead.
+
+If this is called from the main thread, the function is simply invoked.
+
+See <a href="#FUNCTION%20TRIVIAL-MAIN-THREAD%3AMAIN-THREAD-P" class="xref">MAIN-THREAD-P</a></pre></div> </article> </li>  <li> <article class="definition macro callable" id="MACRO-FUNCTION TRIVIAL-MAIN-THREAD:WITH-BODY-IN-MAIN-THREAD"> <header> <span class="visibility">EXTERNAL</span> <span class="type">MACRO</span> <h4 class="name"> <a href="#MACRO-FUNCTION%20TRIVIAL-MAIN-THREAD%3AWITH-BODY-IN-MAIN-THREAD">WITH-BODY-IN-MAIN-THREAD</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <ul class="arguments"> <li class="argument lambda-list-keyword">&amp;KEY</li>  <li class="argument">BLOCKING</li> </ul>    <li class="argument lambda-list-keyword">&amp;BODY</li>    <li class="argument">BODY</li>  </ul>  <a class="source-link" href="https://github.com/Shinmera/trivial-main-thread/blob/12862c2abd1ba391460bb37221ede1fe802c7b58/main-thread.lisp#L134">Source</a>  </header> <div class="docstring"><pre>Evaluate the BODY in the main thread.
+
+See <a href="#FUNCTION%20TRIVIAL-MAIN-THREAD%3ACALL-IN-MAIN-THREAD" class="xref">CALL-IN-MAIN-THREAD</a></pre></div> </article> </li> </ul> </article> </li> </ul> </section>  </article> <script>window.addEventListener("DOMContentLoaded", function(){
+    var unmarkElement = function(el){
+        if(el.tagName === "mark" || el.tagName === "MARK"){
+            [].forEach.call(el.childNodes, function(child){
+                el.parentNode.insertBefore(child, el);
+            });
+            el.parentNode.removeChild(el);
+        }else if(el.parentNode.tagName === "mark"){
+            return unmarkElement(el.parentNode);
+        }
+        return null;
+    }
+
+    var unmarkAll = function(root){
+        root = root || document;
+        [].forEach.call(root.querySelectorAll("mark"), unmarkElement);
+    }
+    
+    var markElement = function(el){
+        if(el.parentNode.tagName === "mark" || el.parentNode.tagName === "MARK"){
+            return el.parentNode;
+        } else {
+            unmarkAll();
+            var marked = document.createElement("mark");
+            el.parentNode.insertBefore(marked, el);
+            marked.appendChild(el);
+            return marked;
+        }
+    }
+
+    var markFragmented = function(){
+        if(window.location.hash){
+            var el = document.getElementById(decodeURIComponent(window.location.hash.substr(1)));
+            if(el) markElement(el);
+        }
+    }
+
+    var registerXrefLink = function(link){
+        var el = document.getElementById(decodeURIComponent(link.getAttribute("href").substr(1)));
+        if(el){
+            link.addEventListener("click", function(){
+                markElement(el);
+            });
+        }
+    }
+
+    var registerXrefLinks = function(root){
+        root = root || document;
+        [].forEach.call(root.querySelectorAll("a.xref"), registerXrefLink);
+    }
+
+    markFragmented();
+    registerXrefLinks();
+}); </script> </body> </html> 

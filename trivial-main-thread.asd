@@ -1,5 +1,5 @@
 (asdf:defsystem trivial-main-thread
-  :version "1.0.0"
+  :version "2.0.0"
   :license "zlib"
   :author "Yukari Hafner <shinmera@tymoon.eu>"
   :maintainer "Yukari Hafner <shinmera@tymoon.eu>"
@@ -12,5 +12,5 @@
                (:file "main-thread")
                (:file "documentation"))
   :depends-on (:trivial-features
-               :bordeaux-threads
-               :simple-tasks))
+               :documentation-utils
+               :bordeaux-threads))
