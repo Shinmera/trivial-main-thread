@@ -44,16 +44,18 @@
                           NIL)))
         (unless (bt:thread-alive-p (main-thread))
           (error "The main thread seems to have died."))
-        (bt:interrupt-thread
-         (main-thread)
-         (or
-          #+ccl (lambda ()
-                  (ccl:%set-toplevel
-                   (lambda ()
-                     (ccl:%set-toplevel NIL)
-                     (funcall new-function)))
-                  (ccl:toplevel))
-          new-function))
+        (bt:with-lock-held (*task-lock*)
+          (flet ((thunk ()
+                   (bt:condition-notify *task-cvar*)
+                   #+ccl
+                   (ccl:%set-toplevel
+                    (lambda ()
+                      (ccl:%set-toplevel NIL)
+                      (funcall new-function)))
+                   #+ccl (ccl:toplevel)
+                   #-ccl (funcall new-function)))
+            (bt:interrupt-thread (main-thread) #'thunk))
+          (bt:condition-wait *task-cvar* *task-lock* :timeout 0.5))
         new-main)))
 
 (defun main-error-handler (e)
