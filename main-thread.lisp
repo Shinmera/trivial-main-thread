@@ -68,23 +68,27 @@
 
 (defun main-runner ()
   (setf *main-runner-running-p* T)
-  (with-simple-restart (stop-main-runner "Exit the main thread loop")
-    (handler-bind ((error #'main-error-handler))
-      (unwind-protect
-           (loop (when (bt:with-lock-held (*task-lock*)
-                         (bt:condition-wait *task-cvar* *task-lock* :timeout 0.5))
-                   (let ((tasks (bt:with-lock-held (*task-lock*)
-                                  (shiftf *task-queue* (make-array 32 :fill-pointer 0)))))
-                     (dotimes (i (length tasks))
-                       (setf (aref tasks i)
-                             (multiple-value-list
-                              (with-simple-restart (resignal-in-caller "Fail the given task and re-signal the condition in the caller thread")
-                                (funcall (aref tasks i)))))))))
-        (bt:with-lock-held (*task-lock*)
-          (let ((tasks *task-queue*))
-            (dotimes (i (length tasks))
-              (setf (aref tasks i) ()))))
-        (setf *main-runner-running-p* NIL)))))
+  (restart-case
+      (handler-bind ((error #'main-error-handler))
+        (unwind-protect
+             (loop (when (bt:with-lock-held (*task-lock*)
+                           (bt:condition-wait *task-cvar* *task-lock* :timeout 0.5))
+                     (let ((tasks (bt:with-lock-held (*task-lock*)
+                                    (shiftf *task-queue* (make-array 32 :fill-pointer 0)))))
+                       (dotimes (i (length tasks))
+                         (setf (aref tasks i)
+                               (restart-case (multiple-value-list (funcall (aref tasks i)))
+                                 (resignal-in-caller (e)
+                                   :report "Fail the given task and re-signal the condition in the caller thread"
+                                   e)))))))
+          (bt:with-lock-held (*task-lock*)
+            (let ((tasks *task-queue*))
+              (dotimes (i (length tasks))
+                (setf (aref tasks i) ()))))
+          (setf *main-runner-running-p* NIL)))
+    (stop-main-runner (&optional value)
+      :report "Exit the main thread loop"
+      value)))
 
 (defun start-main-runner ()
   (when *main-runner-running-p*
@@ -127,8 +131,16 @@
            (when blocking
              (loop for result = (aref vector i)
                    do (typecase result
-                        (condition (signal result))
-                        (list (return (values-list result))))
+                        (error
+                         (error result))
+                        (warning
+                         (warn result)
+                         (return))
+                        (condition
+                         (signal result)
+                         (return))
+                        (list
+                         (return (values-list result))))
                       (sleep 0.01)))))))
 
 (defmacro with-body-in-main-thread ((&key blocking) &body body)
