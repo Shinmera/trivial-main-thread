@@ -1,5 +1,5 @@
 (asdf:defsystem trivial-main-thread
-  :version "2.0.0"
+  :version "2.0.1"
   :license "zlib"
   :author "Yukari Hafner <shinmera@tymoon.eu>"
   :maintainer "Yukari Hafner <shinmera@tymoon.eu>"
